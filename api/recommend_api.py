@@ -69,7 +69,7 @@ def get_sheet():
     creds_dict = json.loads(creds_json)
     creds = Credentials.from_service_account_info(creds_dict, scopes=_SCOPES)
     client = gspread.authorize(creds)
-    return client.open(os.environ["GOOGLE_SHEET_NAME"]).sheet1
+    return client.open_by_key(os.environ["GOOGLE_SHEET_ID"]).sheet1
 
 
 # ── FPL data helpers ───────────────────────────────────────────────────────────
