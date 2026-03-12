@@ -320,7 +320,7 @@ def generate_recommendation(
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     # Retry up to 3 times with exponential backoff (handles 529 overloaded + network blips)
-    delays = [5, 15, 30]
+    delays = [30, 60, 120]
     last_error = None
     for attempt, delay in enumerate(delays, start=1):
         try:
