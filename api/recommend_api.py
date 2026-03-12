@@ -19,6 +19,7 @@ import json
 import os
 import re
 import smtplib
+import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -317,12 +318,25 @@ def generate_recommendation(
     )
 
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=2048,
-        system="You are an expert FPL advisor. Be concise and actionable.",
-        messages=[{"role": "user", "content": prompt}],
-    )
+
+    # Retry up to 3 times with exponential backoff (handles 529 overloaded + network blips)
+    delays = [5, 15, 30]
+    last_error = None
+    for attempt, delay in enumerate(delays, start=1):
+        try:
+            response = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=2048,
+                system="You are an expert FPL advisor. Be concise and actionable.",
+                messages=[{"role": "user", "content": prompt}],
+            )
+            break  # success — exit retry loop
+        except (anthropic.APIStatusError, anthropic.APIConnectionError) as e:
+            last_error = e
+            print(f"[Retry {attempt}/3] Claude error: {e}. Waiting {delay}s...")
+            time.sleep(delay)
+    else:
+        raise last_error  # all 3 attempts failed
 
     raw_text = response.content[0].text
     sections = parse_sections(raw_text)
