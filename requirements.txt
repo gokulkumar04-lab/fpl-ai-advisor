@@ -5,4 +5,4 @@ streamlit
 gspread
 google-auth
 fastapi
-uvicorn
+uvicorn[standard]
