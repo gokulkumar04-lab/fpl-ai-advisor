@@ -18,11 +18,10 @@ Endpoints:
 import json
 import os
 import re
-import smtplib
 import time
 import traceback
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+
+import resend
 
 import anthropic
 import gspread
@@ -484,22 +483,14 @@ def build_html_email(rec: dict, fpl_id: int) -> str:
 # ── Email sender ───────────────────────────────────────────────────────────────
 
 def send_email(to_email: str, subject: str, html_body: str) -> None:
-    """Send an HTML email via Gmail SMTP using an App Password."""
-    gmail_user     = os.environ["GMAIL_USER"]
-    gmail_password = os.environ["GMAIL_APP_PASSWORD"]
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"]    = f"FPL AI Advisor <{gmail_user}>"
-    msg["To"]      = to_email
-    msg.attach(MIMEText(html_body, "html"))
-
-    # Port 587 + STARTTLS (Railway blocks 465/SSL)
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.ehlo()
-        server.starttls()
-        server.login(gmail_user, gmail_password)
-        server.sendmail(gmail_user, to_email, msg.as_string())
+    """Send an HTML email via Resend HTTP API (Railway blocks SMTP ports)."""
+    resend.api_key = os.environ["RESEND_API_KEY"]
+    resend.Emails.send({
+        "from": "FPL AI Advisor <onboarding@resend.dev>",
+        "to":   to_email,
+        "subject": subject,
+        "html": html_body,
+    })
 
 
 # ── Background batch task ──────────────────────────────────────────────────────
