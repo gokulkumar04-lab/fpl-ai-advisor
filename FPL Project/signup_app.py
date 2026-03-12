@@ -95,10 +95,9 @@ st.write(
 st.divider()
 
 with st.form("signup_form", clear_on_submit=False):
-    fpl_id = st.number_input(
+    fpl_id_raw = st.text_input(
         "FPL Team ID",
-        min_value=1,
-        step=1,
+        placeholder="e.g. 6723617",
         help="Find your team ID at fantasy.premierleague.com → Points → click your team name → copy the number from the URL.",
     )
     email = st.text_input(
@@ -108,6 +107,15 @@ with st.form("signup_form", clear_on_submit=False):
     submitted = st.form_submit_button("Sign Me Up →", use_container_width=True)
 
 if submitted:
+    # ── Validate FPL ID is a positive integer ─────────────────────────────────
+    try:
+        fpl_id = int(fpl_id_raw.strip())
+        if fpl_id <= 0:
+            raise ValueError
+    except (ValueError, AttributeError):
+        st.error("Please enter a valid FPL Team ID (numbers only, e.g. 6723617).")
+        st.stop()
+
     # ── Basic email validation ─────────────────────────────────────────────────
     if not email or "@" not in email or "." not in email.split("@")[-1]:
         st.error("Please enter a valid email address.")
@@ -115,11 +123,11 @@ if submitted:
 
     # ── Validate FPL ID against the official API ───────────────────────────────
     with st.spinner("Checking your FPL ID..."):
-        info = validate_fpl_id(int(fpl_id))
+        info = validate_fpl_id(fpl_id)
 
     if info is None:
         st.error(
-            f"FPL Team ID **{int(fpl_id)}** wasn't found. "
+            f"FPL Team ID **{fpl_id}** wasn't found. "
             "Double-check your ID at fantasy.premierleague.com."
         )
         st.stop()
@@ -130,7 +138,7 @@ if submitted:
     # ── Check for duplicate registration ──────────────────────────────────────
     with st.spinner("Checking registration..."):
         sheet = get_sheet()
-        if is_duplicate(sheet, int(fpl_id)):
+        if is_duplicate(sheet, fpl_id):
             st.warning(
                 f"**{team_name}** (managed by {manager_name}) is already registered! "
                 "Check your inbox every Thursday night. ✉️"
@@ -139,7 +147,7 @@ if submitted:
 
     # ── Register the user ─────────────────────────────────────────────────────
     with st.spinner("Registering you..."):
-        register_user(sheet, int(fpl_id), email, manager_name, team_name)
+        register_user(sheet, fpl_id, email, manager_name, team_name)
 
     st.success(
         f"You're in, **{manager_name}**! (**{team_name}**) \n\n"
