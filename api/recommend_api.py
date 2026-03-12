@@ -332,7 +332,7 @@ def generate_recommendation(
                 messages=[{"role": "user", "content": prompt}],
             )
             break  # success — exit retry loop
-        except (anthropic.APIStatusError, anthropic.APIConnectionError) as e:
+        except (anthropic.APIStatusError, anthropic.APIConnectionError, OSError) as e:
             last_error = e
             print(f"[Retry {attempt}/3] Claude error: {e}. Waiting {delay}s...")
             time.sleep(delay)
@@ -549,7 +549,7 @@ def process_all_users() -> None:
 
         except Exception as exc:
             print(f"[ERROR] FPL ID {fpl_id} ({email}): {exc}")
-            traceback.print_exc()
+            print(traceback.format_exc())   # stdout so Railway logs show it
             error_count += 1
 
     print(
