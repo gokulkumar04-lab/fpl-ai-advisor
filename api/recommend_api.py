@@ -20,6 +20,7 @@ import os
 import re
 import smtplib
 import time
+import traceback
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -548,6 +549,7 @@ def process_all_users() -> None:
 
         except Exception as exc:
             print(f"[ERROR] FPL ID {fpl_id} ({email}): {exc}")
+            traceback.print_exc()
             error_count += 1
 
     print(
