@@ -31,7 +31,7 @@ def get_sheet():
     creds_dict = json.loads(st.secrets["GOOGLE_CREDENTIALS_JSON"])
     creds = Credentials.from_service_account_info(creds_dict, scopes=_SCOPES)
     client = gspread.authorize(creds)
-    return client.open(st.secrets["GOOGLE_SHEET_NAME"]).sheet1
+    return client.open_by_key(st.secrets["GOOGLE_SHEET_ID"]).sheet1
 
 
 def is_duplicate(sheet, fpl_id: int) -> bool:
