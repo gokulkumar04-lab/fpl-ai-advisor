@@ -21,7 +21,8 @@ import re
 import time
 import traceback
 
-import resend
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 import anthropic
 import gspread
@@ -483,14 +484,15 @@ def build_html_email(rec: dict, fpl_id: int) -> str:
 # ── Email sender ───────────────────────────────────────────────────────────────
 
 def send_email(to_email: str, subject: str, html_body: str) -> None:
-    """Send an HTML email via Resend HTTP API (Railway blocks SMTP ports)."""
-    resend.api_key = os.environ["RESEND_API_KEY"]
-    resend.Emails.send({
-        "from": "FPL AI Advisor <onboarding@resend.dev>",
-        "to":   to_email,
-        "subject": subject,
-        "html": html_body,
-    })
+    """Send an HTML email via SendGrid HTTP API (Railway blocks SMTP ports)."""
+    message = Mail(
+        from_email="FPL AI Advisor <fantasytipspremierleague@gmail.com>",
+        to_emails=to_email,
+        subject=subject,
+        html_content=html_body,
+    )
+    sg = SendGridAPIClient(os.environ["SENDGRID_API_KEY"])
+    sg.send(message)
 
 
 # ── Background batch task ──────────────────────────────────────────────────────

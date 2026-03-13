@@ -6,4 +6,4 @@ gspread
 google-auth
 fastapi
 uvicorn[standard]
-resend
+sendgrid
